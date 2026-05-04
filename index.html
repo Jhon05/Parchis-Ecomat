@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#101827" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="Parchís ECOMAT" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" type="image/svg+xml" href="icon.svg" />
+  <link rel="stylesheet" href="styles.css" />
+  <title>Parchís ECOMAT · Programación Dinámica</title>
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['\\(','\\)'], ['$', '$']], displayMath: [['\\[','\\]']] },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
+  <script defer src="app.js"></script>
+</head>
+<body>
+  <div id="clock" class="clock">Hora del dispositivo: <span>--:--:--</span></div>
+
+  <main id="enterScreen" class="screen enterScreen">
+    <section class="entryCard">
+      <div class="tag">Modo obligatorio</div>
+      <h1 class="coverTitle">Parchís ECOMAT</h1>
+      <p class="coverSubtitle">Programación dinámica · ingresa a pantalla completa para configurar la partida.</p>
+      <div class="entryFormula">\[V_t(x)=\max_{u_t\in U(x_t)}\{f_t(x_t,u_t)+\beta V_{t+1}(g_t(x_t,u_t))\}\]</div>
+      <button id="enterFullscreenBtn" class="primary big">Entrar en pantalla completa</button>
+      <p class="note">Por seguridad del navegador, la pantalla completa requiere este primer clic.</p>
+    </section>
+  </main>
+
+  <main id="setupScreen" class="screen hidden">
+    <section class="panel wide">
+      <section class="heroBanner box">
+        <div class="heroContent">
+          <div>
+            <div class="tag">Portada docente</div>
+            <h1 class="coverTitle">Parchís ECOMAT</h1>
+            <p class="coverSubtitle">Programación dinámica · tablero tipo Parchís con preguntas por categoría al estilo Trivial Pursuit.</p>
+            <ul class="ruleList">
+              <li><strong>Dos dados:</strong> si sale par, pueden salir fichas de casa.</li>
+              <li><strong>Par de unos o par de seis:</strong> salen hasta 4 fichas de casa.</li>
+              <li><strong>Otros pares:</strong> salen hasta 2 fichas de casa.</li>
+              <li><strong>Movimiento condicionado:</strong> primero respondes la pregunta de la casilla destino; solo si aciertas avanzas.</li>
+              <li><strong>Captura:</strong> si caes sobre la casilla de un rival, lo envías a casa.</li>
+            </ul>
+          </div>
+          <div class="heroBadgeWrap">
+            <div class="heroBadge big">🎲</div>
+            <div class="heroBadge">∂</div>
+            <div class="heroBadge">★</div>
+          </div>
+        </div>
+      </section>
+
+      <div class="panelHead">
+        <div>
+          <div class="tag">Configuración de partida</div>
+          <h2>Juego académico listo para GitHub Pages</h2>
+          <p>Selecciona temas, nivel y jugadores. Cada casilla del tablero tiene una categoría fija de pregunta: conceptual, V/F, formulación, cálculo, interpretación o integrador.</p>
+        </div>
+      </div>
+
+      <div class="setupGrid">
+        <section class="box">
+          <h3>Temas</h3>
+          <div id="topicsBox" class="topicsBox"></div>
+        </section>
+
+        <section class="box">
+          <h3>Modo y reglas</h3>
+          <div class="grid2">
+            <div class="field">
+              <label for="practiceLevel">Nivel</label>
+              <select id="practiceLevel">
+                <option value="nivel1">Nivel 1 · Fundamentos</option>
+                <option value="nivel2" selected>Nivel 2 · Formulación y cálculo</option>
+                <option value="nivel3">Nivel 3 · Reto integrador</option>
+                <option value="todos">Todos los niveles</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="questionFocus">Enfoque</label>
+              <select id="questionFocus">
+                <option value="mixed" selected>Matemático + económico</option>
+                <option value="pure_math">Más matemático</option>
+                <option value="econ_only">Más aplicado a economía</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="questionSeconds">Tiempo por tarjeta</label>
+              <select id="questionSeconds">
+                <option value="45">45 segundos</option>
+                <option value="60" selected>60 segundos</option>
+                <option value="90">90 segundos</option>
+                <option value="120">120 segundos</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="winTokens">Fichas para ganar</label>
+              <select id="winTokens">
+                <option value="1">1 ficha en la meta</option>
+                <option value="2" selected>2 fichas en la meta</option>
+                <option value="4">4 fichas en la meta</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="playerCount">Número de jugadores</label>
+              <select id="playerCount">
+                <option value="2" selected>2 jugadores</option>
+                <option value="3">3 jugadores</option>
+                <option value="4">4 jugadores</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Pantalla completa</label>
+              <div class="lockedSetting">Obligatoria durante todo el juego</div>
+              <select id="fullscreenMode" class="hidden"><option value="on" selected>Obligatoria</option></select>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <section class="box">
+        <h3>Jugadores</h3>
+        <div id="playersConfig" class="playersConfig"></div>
+      </section>
+
+      <div class="actions">
+        <button id="startGameBtn" class="primary big">Iniciar Parchís ECOMAT</button>
+        <button id="loadDemoBtn" class="ghost">Usar nombres de prueba</button>
+      </div>
+    </section>
+  </main>
+
+  <main id="gameScreen" class="gameScreen hidden">
+    <section class="boardPanel">
+      <div class="gameTopbar">
+        <div>
+          <div class="tag">Parchís académico</div>
+          <h2>Tablero ECOMAT</h2>
+        </div>
+        <div class="pillRow topbarControls">
+          <span id="topicsPill" class="pill"></span>
+          <span id="turnPill" class="pill strong"></span>
+          <div class="viewControls">
+            <button id="viewFrontBtn" class="ghost smallCtl">Vista frontal</button>
+            <button id="view3DBtn" class="ghost smallCtl">Vista 3D</button>
+            <button id="view360Btn" class="ghost smallCtl">Vista 360</button>
+          </div>
+        </div>
+      </div>
+      <div class="boardWrap">
+        <div id="boardScene" class="boardScene view-3d">
+          <div id="parchisBoard" class="parchisBoard" aria-label="Tablero de Parchís"></div>
+        </div>
+      </div>
+    </section>
+
+    <aside class="hudPanel">
+      <section class="hudCard activeTurn">
+        <h3>Turno actual</h3>
+        <div id="currentPlayerBox" class="currentPlayerBox"></div>
+        <div class="diceZone">
+          <div class="dicePair" aria-label="Dos dados">
+            <div id="diceOne" class="dice smallDice">?</div>
+            <div id="diceTwo" class="dice smallDice">?</div>
+            <div id="diceTotal" class="diceTotal">Total: —</div>
+          </div>
+          <button id="rollBtn" class="primary">Lanzar dos dados</button>
+        </div>
+        <p class="note">Regla de juego: primero lanzas, luego eliges la ficha y respondes la pregunta de la casilla destino. Si aciertas, avanzas; si fallas, no te mueves. En cálculo aparece un botón para detener/reanudar el tiempo.</p>
+        <div class="legendMini">
+          <span class="category-conceptual">C Conceptual</span>
+          <span class="category-vf">V V/F</span>
+          <span class="category-formulacion">F Formulación</span>
+          <span class="category-calculo">∂ Cálculo</span>
+          <span class="category-interpretacion">I Interpretación</span>
+          <span class="category-integrador">★ Integrador</span>
+        </div>
+      </section>
+
+      <section class="hudCard">
+        <h3>Jugadores</h3>
+        <div id="playersList" class="playersList"></div>
+      </section>
+
+      <section class="hudCard">
+        <h3>Registro</h3>
+        <div id="gameLog" class="gameLog"></div>
+        <div class="hudActions">
+          <button id="finishGameBtn" class="secondary">Finalizar y descargar reporte</button>
+          <button id="newGameBtn" class="ghost">Nueva partida</button>
+        </div>
+      </section>
+    </aside>
+  </main>
+
+  <div id="questionModal" class="modal hidden" role="dialog" aria-modal="true">
+    <section class="modalBox questionBox">
+      <div class="questionTop">
+        <div>
+          <div id="qMeta" class="tag"></div>
+          <h2 id="qTitle">Tarjeta</h2>
+        </div>
+        <div id="timerBadge" class="timerBadge">60</div>
+      </div>
+      <div id="qPrompt" class="qPrompt"></div>
+      <div id="qAnswers" class="qAnswers"></div>
+      <div id="qHint" class="hint hidden"></div>
+      <div id="qFeedback" class="feedback hidden"></div>
+      <div class="questionActions">
+        <button id="hintBtn" class="ghost">Ver pista</button>
+        <button id="pauseTimerBtn" class="ghost hidden">Detener tiempo</button>
+        <button id="continueBtn" class="primary hidden">Continuar</button>
+      </div>
+    </section>
+  </div>
+
+  <div id="finalModal" class="modal hidden">
+    <section class="modalBox finalBox">
+      <h2 id="finalTitle">Partida finalizada</h2>
+      <div id="finalSummary"></div>
+      <div class="actions">
+        <button id="downloadReportBtn" class="primary">Descargar reporte PDF</button>
+        <button id="returnSetupBtn" class="secondary">Volver a configuración</button>
+      </div>
+    </section>
+  </div>
+
+  <div id="fullscreenOverlay" class="modal hidden">
+    <section class="modalBox finalBox">
+      <h2>Modo pantalla completa obligatorio</h2>
+      <p>El juego debe permanecer en pantalla completa. Para continuar, vuelve a entrar en pantalla completa.</p>
+      <div class="actions">
+        <button id="resumeFullscreenBtn" class="primary">Reingresar a pantalla completa</button>
+      </div>
+    </section>
+  </div>
+
+</body>
+</html>

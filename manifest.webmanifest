@@ -1,0 +1,12 @@
+{
+  "name": "Parchís ECOMAT",
+  "short_name": "ECOMAT",
+  "description": "Juego tipo Parchís para Economía Matemática y programación dinámica.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#07101f",
+  "theme_color": "#101827",
+  "icons": [
+    {"src": "icon.svg", "sizes": "any", "type": "image/svg+xml"}
+  ]
+}
